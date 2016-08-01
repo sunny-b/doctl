@@ -85,9 +85,7 @@ func PaginateResp(gen Generator) (interface{}, error) {
 	}
 	close(fetchChan)
 
-	fmt.Println("waiting")
 	wg.Wait()
-	fmt.Println("done waiting")
 
 	<-fetchChan
 	close(out)
@@ -101,7 +99,6 @@ func PaginateResp(gen Generator) (interface{}, error) {
 }
 
 func fetchPage(gen Generator, page int, out chan interface{}) error {
-	fmt.Println("fetch page", page)
 	opt := &godo.ListOptions{Page: page, PerPage: 200}
 	_, err := gen(opt, out)
 	return err

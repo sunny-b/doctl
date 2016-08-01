@@ -26,11 +26,13 @@ func Test_PaginateResp(t *testing.T) {
 	currentPage := 0
 	resp := &godo.Response{Links: &godo.Links{Pages: &godo.Pages{Last: "http://example.com/?page=5"}}}
 
-	gen := func(*godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	gen := func(opts *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		mu.Lock()
 		defer mu.Unlock()
 		currentPage++
-		return []interface{}{currentPage}, resp, nil
+
+		out <- 1
+		return resp, nil
 	}
 
 	list, err := PaginateResp(gen)
@@ -40,16 +42,17 @@ func Test_PaginateResp(t *testing.T) {
 }
 
 func Test_Pagination_fetchPage(t *testing.T) {
-	gen := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
-		items := []interface{}{}
+	gen := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		resp := &godo.Response{}
 
+		out <- 1
 		assert.Equal(t, 10, opt.Page)
 
-		return items, resp, nil
+		return resp, nil
 	}
 
-	fetchPage(gen, 10)
+	out := make(chan interface{}, 10)
+	fetchPage(gen, 10, out)
 }
 
 func Test_Pagination_lastPage(t *testing.T) {
