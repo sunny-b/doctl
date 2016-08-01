@@ -1,4 +1,3 @@
-
 /*
 Copyright 2016 The Doctl Authors All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,31 +99,28 @@ func (is *imagesService) Delete(id int) error {
 type listFn func(*godo.ListOptions) ([]godo.Image, *godo.Response, error)
 
 func (is *imagesService) listImages(lFn listFn, public bool) (Images, error) {
-	fn := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	fn := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := lFn(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := []interface{}{}
-		for _, i := range list {
-			if (public && i.Public) || !public {
-				si = append(si, i)
-			}
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(fn)
+	resp, err := PaginateResp(fn)
 	if err != nil {
 		return nil, err
 	}
 
-	var list Images
-	for i := range si {
-		image := si[i].(godo.Image)
-		list = append(list, Image{Image: &image})
+	items := resp.([]godo.Image)
+	list := make(Images, len(items))
+	for i := range items {
+		list[i] = Image{Image: &items[i]}
 	}
 
 	return list, nil

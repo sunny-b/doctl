@@ -1,4 +1,3 @@
-
 /*
 Copyright 2016 The Doctl Authors All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,10 +45,10 @@ func NewFloatingIPsService(client *godo.Client) FloatingIPsService {
 }
 
 func (fis *floatingIPsService) List() (FloatingIPs, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := fis.client.FloatingIPs.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		si := make([]interface{}, len(list))
@@ -57,18 +56,18 @@ func (fis *floatingIPsService) List() (FloatingIPs, error) {
 			si[i] = list[i]
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	var list FloatingIPs
-	for _, x := range si {
-		fip := x.(godo.FloatingIP)
-		list = append(list, FloatingIP{FloatingIP: &fip})
+	items := resp.([]godo.FloatingIP)
+	list := make(FloatingIPs, len(items))
+	for i := range items {
+		list[i] = FloatingIP{FloatingIP: &items[i]}
 	}
 
 	return list, nil

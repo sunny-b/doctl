@@ -48,29 +48,28 @@ func NewTagsService(godoClient *godo.Client) TagsService {
 }
 
 func (ts *tagsService) List() (Tags, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ts.client.Tags.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Tags, len(si))
-	for i := range si {
-		a := si[i].(godo.Tag)
-		list[i] = Tag{Tag: &a}
+	items := resp.([]godo.Tag)
+	list := make(Tags, len(items))
+	for i := range items {
+		list[i] = Tag{Tag: &items[i]}
 	}
 
 	return list, nil

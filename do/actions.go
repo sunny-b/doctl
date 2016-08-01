@@ -1,4 +1,3 @@
-
 /*
 Copyright 2016 The Doctl Authors All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,29 +43,28 @@ func NewActionsService(godoClient *godo.Client) ActionsService {
 }
 
 func (as *actionsService) List() (Actions, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := as.client.Actions.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Actions, len(si))
-	for i := range si {
-		a := si[i].(godo.Action)
-		list[i] = Action{Action: &a}
+	items := resp.([]godo.Action)
+	list := make(Actions, len(items))
+	for i := range items {
+		list[i] = Action{Action: &items[i]}
 	}
 
 	return list, nil

@@ -1,4 +1,3 @@
-
 /*
 Copyright 2016 The Doctl Authors All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,29 +59,28 @@ func NewDomainsService(client *godo.Client) DomainsService {
 }
 
 func (ds *domainsService) List() (Domains, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Domains.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Domains, len(si))
-	for i := range si {
-		d := si[i].(godo.Domain)
-		list[i] = Domain{Domain: &d}
+	domains := resp.([]godo.Domain)
+	list := make(Domains, len(domains))
+	for i := range domains {
+		list[i] = Domain{Domain: &domains[i]}
 	}
 
 	return list, nil
@@ -112,29 +110,28 @@ func (ds *domainsService) Delete(name string) error {
 }
 
 func (ds *domainsService) Records(name string) (DomainRecords, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Domains.Records(name, opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(DomainRecords, len(si))
-	for i := range si {
-		dr := si[i].(godo.DomainRecord)
-		list[i] = DomainRecord{DomainRecord: &dr}
+	items := resp.([]godo.DomainRecord)
+	list := make(DomainRecords, len(items))
+	for i := range items {
+		list[i] = DomainRecord{DomainRecord: &items[i]}
 	}
 
 	return list, nil

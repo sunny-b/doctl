@@ -1,4 +1,3 @@
-
 /*
 Copyright 2016 The Doctl Authors All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,29 +42,28 @@ func NewSizesService(client *godo.Client) SizesService {
 }
 
 func (rs *sizesService) List() (Sizes, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := rs.client.Sizes.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Sizes, len(si))
-	for i := range si {
-		r := si[i].(godo.Size)
-		list[i] = Size{Size: &r}
+	items := resp.([]godo.Size)
+	list := make(Sizes, len(items))
+	for i := range items {
+		list[i] = Size{Size: &items[i]}
 	}
 
 	return list, nil

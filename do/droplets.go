@@ -76,59 +76,67 @@ func NewDropletsService(client *godo.Client) DropletsService {
 	}
 }
 
+// func (ds *dropletsService) Iterator() <-chan *Droplet {
+// 	ch := make(chan *Droplet)
+
+//   go func() {
+
+//   }
+// }
+
 func (ds *dropletsService) List() (Droplets, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Droplets.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Droplets, len(si))
-	for i := range si {
-		a := si[i].(godo.Droplet)
-		list[i] = Droplet{Droplet: &a}
+	items := resp.([]interface{})
+	list := make(Droplets, len(items))
+	for i := range items {
+		d := items[i].(godo.Droplet)
+		list[i] = Droplet{Droplet: &d}
 	}
 
 	return list, nil
 }
 
 func (ds *dropletsService) ListByTag(tagName string) (Droplets, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Droplets.ListByTag(tagName, opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Droplets, len(si))
-	for i := range si {
-		a := si[i].(godo.Droplet)
-		list[i] = Droplet{Droplet: &a}
+	items := resp.([]interface{})
+	list := make(Droplets, len(items))
+	for i := range items {
+		d := items[i].(godo.Droplet)
+		list[i] = Droplet{Droplet: &d}
 	}
 
 	return list, nil
@@ -196,116 +204,113 @@ func (ds *dropletsService) DeleteByTag(tag string) error {
 }
 
 func (ds *dropletsService) Kernels(id int) (Kernels, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Droplets.Kernels(id, opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Kernels, len(si))
-	for i := range si {
-		a := si[i].(godo.Kernel)
-		list[i] = Kernel{Kernel: &a}
+	items := resp.([]interface{})
+	list := make(Kernels, len(items))
+	for i := range items {
+		d := items[i].(godo.Kernel)
+		list[i] = Kernel{Kernel: &d}
 	}
 
 	return list, nil
 }
 
 func (ds *dropletsService) Snapshots(id int) (Images, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Droplets.Snapshots(id, opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Images, len(si))
-	for i := range si {
-		a := si[i].(godo.Image)
-		list[i] = Image{Image: &a}
+	items := resp.([]godo.Image)
+	list := make(Images, len(items))
+	for i := range items {
+		list[i] = Image{Image: &items[i]}
 	}
 
 	return list, nil
 }
 
 func (ds *dropletsService) Backups(id int) (Images, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Droplets.Backups(id, opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Images, len(si))
-	for i := range si {
-		a := si[i].(godo.Image)
-		list[i] = Image{Image: &a}
+	items := resp.([]godo.Image)
+	list := make(Images, len(items))
+	for i := range items {
+		list[i] = Image{Image: &items[i]}
 	}
 
 	return list, nil
 }
 
 func (ds *dropletsService) Actions(id int) (Actions, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ds.client.Droplets.Actions(id, opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(Actions, len(si))
-	for i := range si {
-		a := si[i].(godo.Action)
-		list[i] = Action{Action: &a}
+	items := resp.([]godo.Action)
+	list := make(Actions, len(items))
+	for i := range items {
+		list[i] = Action{Action: &items[i]}
 	}
 
 	return list, nil

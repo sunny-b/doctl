@@ -41,37 +41,36 @@ func (pl *paginatedList) append(items ...interface{}) {
 }
 
 // Generator is a function that generates the list to be paginated.
-type Generator func(*godo.ListOptions) ([]interface{}, *godo.Response, error)
+type Generator func(*godo.ListOptions, chan interface{}) (*godo.Response, error)
 
 // PaginateResp paginates a Response.
-func PaginateResp(gen Generator) ([]interface{}, error) {
+func PaginateResp(gen Generator) (interface{}, error) {
 	opt := &godo.ListOptions{Page: 1, PerPage: perPage}
 
-	l := paginatedList{}
-
 	fetchChan := make(chan int, maxFetchPages)
+	out := make(chan interface{}, 100)
 
 	var wg sync.WaitGroup
 	for i := 0; i < maxFetchPages-1; i++ {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			for page := range fetchChan {
-				items, err := fetchFn(gen, page)
-				if err == nil {
-					l.append(items...)
+				if err := fetchFn(gen, page, out); err != nil {
+					// TODO we should do something here
+					fmt.Printf("something went wrong with the fetches: %s", err)
+					return
 				}
 			}
-			wg.Done()
 		}()
 	}
 
 	// fetch first page to get page count (x)
-	items, resp, err := gen(opt)
+
+	resp, err := gen(opt, out)
 	if err != nil {
 		return nil, err
 	}
-
-	l.append(items...)
 
 	// find last page
 	lp, err := lastPage(resp)
@@ -86,15 +85,26 @@ func PaginateResp(gen Generator) ([]interface{}, error) {
 	}
 	close(fetchChan)
 
+	fmt.Println("waiting")
 	wg.Wait()
+	fmt.Println("done waiting")
 
-	return l.list, nil
+	<-fetchChan
+	close(out)
+
+	list := []interface{}{}
+	for item := range out {
+		list = append(list, item)
+	}
+
+	return list, nil
 }
 
-func fetchPage(gen Generator, page int) ([]interface{}, error) {
+func fetchPage(gen Generator, page int, out chan interface{}) error {
+	fmt.Println("fetch page", page)
 	opt := &godo.ListOptions{Page: page, PerPage: 200}
-	items, _, err := gen(opt)
-	return items, err
+	_, err := gen(opt, out)
+	return err
 }
 
 func lastPage(resp *godo.Response) (int, error) {

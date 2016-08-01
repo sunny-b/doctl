@@ -51,29 +51,28 @@ func NewKeysService(client *godo.Client) KeysService {
 }
 
 func (ks *keysService) List() (SSHKeys, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := ks.client.Keys.List(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(SSHKeys, len(si))
-	for i := range si {
-		k := si[i].(godo.Key)
-		list[i] = SSHKey{Key: &k}
+	items := resp.([]godo.Key)
+	list := make(SSHKeys, len(items))
+	for i := range items {
+		list[i] = SSHKey{Key: &items[i]}
 	}
 
 	return list, nil

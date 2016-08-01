@@ -7,6 +7,8 @@ type Volume struct {
 	*godo.Volume
 }
 
+type Volumes []Volume
+
 // VolumesService is an interface for interacting with DigitalOcean's account api.
 type VolumesService interface {
 	List() ([]Volume, error)
@@ -30,33 +32,30 @@ func NewVolumesService(godoClient *godo.Client) VolumesService {
 }
 
 func (a *volumesService) List() ([]Volume, error) {
-	f := func(opt *godo.ListOptions) ([]interface{}, *godo.Response, error) {
+	f := func(opt *godo.ListOptions, out chan interface{}) (*godo.Response, error) {
 		list, resp, err := a.client.Storage.ListVolumes(opt)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 
 		}
 
-		si := make([]interface{}, len(list))
-		for i := range list {
-			si[i] = list[i]
+		for _, d := range list {
+			out <- d
 		}
 
-		return si, resp, err
-
+		return resp, nil
 	}
 
-	si, err := PaginateResp(f)
+	resp, err := PaginateResp(f)
 	if err != nil {
 		return nil, err
 
 	}
 
-	list := make([]Volume, len(si))
-	for i := range si {
-		a := si[i].(godo.Volume)
-		list[i] = Volume{Volume: &a}
-
+	items := resp.([]godo.Volume)
+	list := make(Volumes, len(items))
+	for i := range items {
+		list[i] = Volume{Volume: &items[i]}
 	}
 
 	return list, nil
