@@ -7,6 +7,7 @@ type Volume struct {
 	*godo.Volume
 }
 
+// Volumes is a slice of Volume.
 type Volumes []Volume
 
 // VolumesService is an interface for interacting with DigitalOcean's account api.
@@ -23,7 +24,7 @@ type volumesService struct {
 
 var _ VolumesService = &volumesService{}
 
-// NewAccountService builds an NewVolumesService instance.
+// NewVolumesService builds an NewVolumesService instance.
 func NewVolumesService(godoClient *godo.Client) VolumesService {
 	return &volumesService{
 		client: godoClient,
@@ -52,14 +53,14 @@ func (a *volumesService) List() ([]Volume, error) {
 
 	}
 
-	items := resp.([]godo.Volume)
+	items := resp.([]interface{})
 	list := make(Volumes, len(items))
 	for i := range items {
-		list[i] = Volume{Volume: &items[i]}
+		d := items[i].(godo.Volume)
+		list[i] = Volume{Volume: &d}
 	}
 
 	return list, nil
-
 }
 
 func (a *volumesService) CreateVolume(r *godo.VolumeCreateRequest) (*Volume, error) {
@@ -73,15 +74,8 @@ func (a *volumesService) CreateVolume(r *godo.VolumeCreateRequest) (*Volume, err
 }
 
 func (a *volumesService) DeleteVolume(id string) error {
-
 	_, err := a.client.Storage.DeleteVolume(id)
-	if err != nil {
-		return err
-
-	}
-
-	return nil
-
+	return err
 }
 
 func (a *volumesService) Get(id string) (*Volume, error) {

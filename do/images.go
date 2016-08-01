@@ -117,10 +117,11 @@ func (is *imagesService) listImages(lFn listFn, public bool) (Images, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Image)
+	items := resp.([]interface{})
 	list := make(Images, len(items))
 	for i := range items {
-		list[i] = Image{Image: &items[i]}
+		d := items[i].(godo.Image)
+		list[i] = Image{Image: &d}
 	}
 
 	return list, nil

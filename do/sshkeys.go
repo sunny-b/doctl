@@ -69,10 +69,11 @@ func (ks *keysService) List() (SSHKeys, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Key)
+	items := resp.([]interface{})
 	list := make(SSHKeys, len(items))
 	for i := range items {
-		list[i] = SSHKey{Key: &items[i]}
+		d := items[i].(godo.Key)
+		list[i] = SSHKey{Key: &d}
 	}
 
 	return list, nil

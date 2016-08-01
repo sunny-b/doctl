@@ -77,10 +77,11 @@ func (ds *domainsService) List() (Domains, error) {
 		return nil, err
 	}
 
-	domains := resp.([]godo.Domain)
-	list := make(Domains, len(domains))
-	for i := range domains {
-		list[i] = Domain{Domain: &domains[i]}
+	items := resp.([]interface{})
+	list := make(Domains, len(items))
+	for i := range items {
+		d := items[i].(godo.Domain)
+		list[i] = Domain{Domain: &d}
 	}
 
 	return list, nil
@@ -128,12 +129,12 @@ func (ds *domainsService) Records(name string) (DomainRecords, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.DomainRecord)
+	items := resp.([]interface{})
 	list := make(DomainRecords, len(items))
 	for i := range items {
-		list[i] = DomainRecord{DomainRecord: &items[i]}
+		d := items[i].(godo.DomainRecord)
+		list[i] = DomainRecord{DomainRecord: &d}
 	}
-
 	return list, nil
 }
 

@@ -64,10 +64,11 @@ func (fis *floatingIPsService) List() (FloatingIPs, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.FloatingIP)
+	items := resp.([]interface{})
 	list := make(FloatingIPs, len(items))
 	for i := range items {
-		list[i] = FloatingIP{FloatingIP: &items[i]}
+		d := items[i].(godo.FloatingIP)
+		list[i] = FloatingIP{FloatingIP: &d}
 	}
 
 	return list, nil

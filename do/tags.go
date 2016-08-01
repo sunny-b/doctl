@@ -66,10 +66,11 @@ func (ts *tagsService) List() (Tags, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Tag)
+	items := resp.([]interface{})
 	list := make(Tags, len(items))
 	for i := range items {
-		list[i] = Tag{Tag: &items[i]}
+		d := items[i].(godo.Tag)
+		list[i] = Tag{Tag: &d}
 	}
 
 	return list, nil

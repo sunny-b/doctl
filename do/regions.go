@@ -60,10 +60,11 @@ func (rs *regionsService) List() (Regions, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Region)
+	items := resp.([]interface{})
 	list := make(Regions, len(items))
 	for i := range items {
-		list[i] = Region{Region: &items[i]}
+		d := items[i].(godo.Region)
+		list[i] = Region{Region: &d}
 	}
 
 	return list, nil

@@ -60,10 +60,11 @@ func (rs *sizesService) List() (Sizes, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Size)
+	items := resp.([]interface{})
 	list := make(Sizes, len(items))
 	for i := range items {
-		list[i] = Size{Size: &items[i]}
+		d := items[i].(godo.Size)
+		list[i] = Size{Size: &d}
 	}
 
 	return list, nil

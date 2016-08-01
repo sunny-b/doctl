@@ -251,10 +251,11 @@ func (ds *dropletsService) Snapshots(id int) (Images, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Image)
+	items := resp.([]interface{})
 	list := make(Images, len(items))
 	for i := range items {
-		list[i] = Image{Image: &items[i]}
+		d := items[i].(godo.Image)
+		list[i] = Image{Image: &d}
 	}
 
 	return list, nil
@@ -279,10 +280,11 @@ func (ds *dropletsService) Backups(id int) (Images, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Image)
+	items := resp.([]interface{})
 	list := make(Images, len(items))
 	for i := range items {
-		list[i] = Image{Image: &items[i]}
+		d := items[i].(godo.Image)
+		list[i] = Image{Image: &d}
 	}
 
 	return list, nil
@@ -307,12 +309,12 @@ func (ds *dropletsService) Actions(id int) (Actions, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Action)
+	items := resp.([]interface{})
 	list := make(Actions, len(items))
 	for i := range items {
-		list[i] = Action{Action: &items[i]}
+		d := items[i].(godo.Action)
+		list[i] = Action{Action: &d}
 	}
-
 	return list, nil
 }
 

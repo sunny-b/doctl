@@ -61,10 +61,11 @@ func (as *actionsService) List() (Actions, error) {
 		return nil, err
 	}
 
-	items := resp.([]godo.Action)
+	items := resp.([]interface{})
 	list := make(Actions, len(items))
 	for i := range items {
-		list[i] = Action{Action: &items[i]}
+		d := items[i].(godo.Action)
+		list[i] = Action{Action: &d}
 	}
 
 	return list, nil
