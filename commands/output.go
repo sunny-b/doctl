@@ -579,6 +579,52 @@ func (t *tag) KV() []map[string]interface{} {
 	return out
 }
 
+//CDN Output
+
+type cdn struct {
+	cdns []do.CDN
+}
+
+var _ Displayable = &cdn{}
+
+func (c *cdn) JSON(out io.Writer) error {
+	return writeJSON(c.cdns, out)
+}
+
+func (c *cdn) Cols() []string {
+	return []string{
+		"ID", "Origin", "Endpoint", "TTL", "CreatedAt",
+	}
+}
+
+func (c *cdn) ColMap() map[string]string {
+	return map[string]string{
+		"ID":        "ID",
+		"Origin":    "Origin",
+		"Endpoint":  "Endpoint",
+		"TTL":       "TTL",
+		"CreatedAt": "CreatedAt",
+	}
+}
+
+func (c *cdn) KV() []map[string]interface{} {
+	out := []map[string]interface{}{}
+
+	for _, cdn := range c.cdns {
+		m := map[string]interface{}{
+			"ID":        cdn.ID,
+			"Origin":    cdn.Origin,
+			"Endpoint":  cdn.Endpoint,
+			"TTL":       cdn.TTL,
+			"CreatedAt": cdn.CreatedAt,
+		}
+
+		out = append(out, m)
+	}
+
+	return out
+}
+
 type volume struct {
 	volumes []do.Volume
 }

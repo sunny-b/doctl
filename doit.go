@@ -269,7 +269,7 @@ func (c *LiveConfig) GetInt(ns, key string) (int, error) {
 	nskey := fmt.Sprintf("%s.%s", ns, key)
 
 	if _, ok := viper.AllSettings()[fmt.Sprintf("%s.required", nskey)]; ok {
-		if viper.GetInt(nskey) < 0 {
+		if viper.GetInt(nskey) <= 0 {
 			return 0, NewMissingArgsErr(nskey)
 		}
 	}

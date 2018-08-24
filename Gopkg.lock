@@ -25,13 +25,16 @@
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:b31080395daa46b9381bb4385236c4654960ad8f4e78fdd4c981f45d04365466"
   name = "github.com/digitalocean/godo"
   packages = [
     ".",
-    "util"
+    "util",
   ]
-  revision = "51f18c0e42941703dc13d15bc0ad69aef6a49830"
-  version = "v1.3.0"
+  pruneopts = ""
+  revision = "04a8dba8b56cf79f4676408f0b3df18fc7414489"
+  version = "v1.4.0"
+
 
 [[projects]]
   name = "github.com/dustin/go-humanize"
